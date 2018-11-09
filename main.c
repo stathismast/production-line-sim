@@ -1,36 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <wait.h>
-#include <string.h>
+#include <time.h>
 
+#include "semaphores.h"
 #include "sharedMemory.h"
 
-int main(void){
-    key_t key = getSharedKey();
+int child_work(int * sharedMemory, int semFull, int semEmpty){
+    semDown(semFull);
+        printf("child in CS\n");
+        printf("%d: %d\n", (int)getpid(), *sharedMemory);
+    semUp(semEmpty);
+}
 
-    int shmid = memCreate(key,1024);
-    void * shptr = memGet(shmid);
-    *((int *)shptr) = 16;
+int main(int argc, char * argv[]){
+    srand(time(NULL));
 
-    memDetach(shptr);
+    // Set up shared memory segment
+    key_t shmkey = 1634;
+    int shmid;
+    int * sharedMemory;
+    shmid = memCreate(shmkey,sizeof(int));
+    sharedMemory = memGet(shmid);
 
+    // Set up empty-ness semaphore
+    int semEmpty;
+    key_t semEmptyKey = 3869;
+    semEmpty = semCreate(semEmptyKey,1);
 
+    // Set up full-ness semaphore
+    int semFull;
+    key_t semFullKey = 5316;
+    semFull = semCreate(semFullKey,0);
 
-    for(int i=0; i<3; i++){
-        int pid = fork();
-        if(pid == 0){
-
-            char * buff[2];
-            buff[0] = (char*) malloc(16);
-            strcpy(buff[0],"./child");
-            buff[1] = NULL;
-
-            execvp("./child", buff);
-        }
+    // Fork to create child
+    if(fork() == 0){
+        child_work(sharedMemory,semFull,semEmpty);
+        exit(0);
     }
 
+    // Put some information in the shared memory segment
+    int value = 16;
+    semDown(semEmpty);
+        printf("parent in CS, about to sleep\n");
+        sleep(1);
+        memcpy(sharedMemory,&value,sizeof(int));
+    semUp(semFull);
 
+    wait(NULL);
 
-    // memDelete(shmid);
+    memDetach(sharedMemory);
+    memDelete(shmid);
+
+    semDelete(semEmpty);
+    semDelete(semFull);
 }
