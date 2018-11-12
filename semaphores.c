@@ -7,12 +7,12 @@ union semun{
 };
 
 int semCreate(key_t key, int val){
-    int semid,i;
+    int semid;
     union semun arg;
 
     semid = semget(key,1,0666|IPC_CREAT);
     arg.val = val;
-    semctl(semid,i,SETVAL,arg);
+    semctl(semid,0,SETVAL,arg);
     return semid;
 }
 
