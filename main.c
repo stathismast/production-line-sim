@@ -9,16 +9,45 @@
 #include "semaphores.h"
 #include "sharedMemory.h"
 
-int child_work(int * sharedMemory, int semFull, int semEmpty){
-    printf("child is ready to enter CS\n");
-    semDown(semFull);
-        printf("child in CS\n");
-        printf("%d: %d\n", (int)getpid(), *sharedMemory);
-    semUp(semEmpty);
+void painter(int * sharedMemory,
+             int semFull,
+             int semEmpty,
+             int numberOfItems){
+
+    for(int i=0; i<numberOfItems; i++){
+        printf("child is ready to enter CS for the #%d time\n", i);
+        semDown(semFull);
+            printf("child in CS\n");
+            printf("%d: %d\n", (int)getpid(), *sharedMemory);
+        semUp(semEmpty);
+    }
+    exit(0);
 }
+
+void partProducer(int * sharedMemory,
+                 int semFull,
+                 int semEmpty,
+                 int numberOfItems,
+                 int startVal){
+
+    int value = startVal;
+    for(int i=0; i<numberOfItems; i++){
+        semDown(semEmpty);
+            printf("parent in CS, about to sleep\n");
+            usleep(500000); // Sleep for half a second
+            memcpy(sharedMemory,&value,sizeof(int));
+        semUp(semFull);
+        value++;
+    }
+    exit(0);
+}
+
+
 
 int main(int argc, char * argv[]){
     srand(time(NULL));
+
+    int numberOfItems = 3;
 
     // Set up shared memory segment
     key_t shmkey = 1634;
@@ -38,19 +67,22 @@ int main(int argc, char * argv[]){
     semFull = semCreate(semFullKey,0);
 
     // Fork to create child
-    if(fork() == 0){
-        child_work(sharedMemory,semFull,semEmpty);
-        exit(0);
-    }
+    if(fork() == 0)
+        painter(sharedMemory,semFull,semEmpty,3*numberOfItems);
 
-    // Put some information in the shared memory segment
-    int value = 16;
-    semDown(semEmpty);
-        printf("parent in CS, about to sleep\n");
-        sleep(1);
-        memcpy(sharedMemory,&value,sizeof(int));
-    semUp(semFull);
+    
+    if(fork() == 0)
+        partProducer(sharedMemory,semFull,semEmpty,numberOfItems,5);
 
+    if(fork() == 0)
+        partProducer(sharedMemory,semFull,semEmpty,numberOfItems,10);
+
+    if(fork() == 0)
+        partProducer(sharedMemory,semFull,semEmpty,numberOfItems,15);
+
+    wait(NULL);
+    wait(NULL);
+    wait(NULL);
     wait(NULL);
 
     shmDetach(sharedMemory);
