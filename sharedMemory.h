@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
 #include <sys/shm.h>
 
 int shmCreate(key_t key, int size);
