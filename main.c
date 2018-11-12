@@ -66,11 +66,11 @@ int main(int argc, char * argv[]){
     key_t semFullKey = 5316;
     semFull = semCreate(semFullKey,0);
 
-    // Fork to create child
+    // Create painter
     if(fork() == 0)
         painter(sharedMemory,semFull,semEmpty,3*numberOfItems);
 
-    
+    // Create three part producers
     if(fork() == 0)
         partProducer(sharedMemory,semFull,semEmpty,numberOfItems,5);
 
