@@ -10,6 +10,7 @@
 #include "sharedMemory.h"
 
 int child_work(int * sharedMemory, int semFull, int semEmpty){
+    printf("child is ready to enter CS\n");
     semDown(semFull);
         printf("child in CS\n");
         printf("%d: %d\n", (int)getpid(), *sharedMemory);
@@ -23,8 +24,8 @@ int main(int argc, char * argv[]){
     key_t shmkey = 1634;
     int shmid;
     int * sharedMemory;
-    shmid = memCreate(shmkey,sizeof(int));
-    sharedMemory = memGet(shmid);
+    shmid = shmCreate(shmkey,sizeof(int));
+    sharedMemory = shmGet(shmid);
 
     // Set up empty-ness semaphore
     int semEmpty;
@@ -52,8 +53,8 @@ int main(int argc, char * argv[]){
 
     wait(NULL);
 
-    memDetach(sharedMemory);
-    memDelete(shmid);
+    shmDetach(sharedMemory);
+    shmDelete(shmid);
 
     semDelete(semEmpty);
     semDelete(semFull);

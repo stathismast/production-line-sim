@@ -4,7 +4,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-int memCreate(key_t,int);
-void *memGet(int);
-int memDetach(void *);
-int memDelete(int);
+int shmCreate(key_t key, int size);
+void* shmGet(int shmid);
+int shmDetach(void * sharedMemory);
+int shmDelete(int shmid);

@@ -5,7 +5,7 @@
 #include <sys/sem.h>
 #include <sys/ipc.h>
 
-int semCreate(key_t,int);
-int semDown(int);
-int semUp(int);
-int semDelete(int);
+int semCreate(key_t key, int val);
+int semDown(int semid);
+int semUp(int semid);
+int semDelete(int semid);
