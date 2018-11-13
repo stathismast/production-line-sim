@@ -32,6 +32,10 @@ int semUp(int semid){
     return semop(semid,&sb,1);
 }
 
+int semValue(int semid){
+    semctl(semid, 0, GETVAL, 0);
+}
+
 int semDelete(int semid){
     return semctl(semid,0,IPC_RMID);
 }
