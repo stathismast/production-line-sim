@@ -2,15 +2,15 @@
 #include <stdio.h>
 
 int randomNumber(int lowerLimit, int upperLimit){
-    return (rand() % upperLimit-lowerLimit) + lowerLimit;
+    return (rand() % (upperLimit-lowerLimit)) + lowerLimit;
 }
 
 TriplePSM * getTriplePSM(int size){
     TriplePSM * triplePSM = malloc(sizeof(TriplePSM));
 
-    triplePSM->first = getPSM(size);
-    triplePSM->second = getPSM(size);
-    triplePSM->third = getPSM(size);
+    triplePSM->psm[0] = getPSM(size);
+    triplePSM->psm[1] = getPSM(size);
+    triplePSM->psm[2] = getPSM(size);
 
     int semEmptyKey = randomNumber(1000,10000);
     int semFullKey = randomNumber(1000,10000);
@@ -47,18 +47,18 @@ PSM * getPSM(int size){
 }
 
 void detachTriplePSM(TriplePSM * triplePSM){
-    detachPSM(triplePSM->first);
-    detachPSM(triplePSM->second);
-    detachPSM(triplePSM->third);
+    detachPSM(triplePSM->psm[0]);
+    detachPSM(triplePSM->psm[1]);
+    detachPSM(triplePSM->psm[2]);
 
     semDelete(triplePSM->semAllEmpty);
     semDelete(triplePSM->semAllFull);
 }
 
 void freeTriplePSM(TriplePSM * triplePSM){
-    free(triplePSM->first);
-    free(triplePSM->second);
-    free(triplePSM->third);
+    free(triplePSM->psm[0]);
+    free(triplePSM->psm[1]);
+    free(triplePSM->psm[2]);
 
     free(triplePSM);
 }

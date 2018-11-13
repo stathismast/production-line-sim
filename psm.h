@@ -5,6 +5,7 @@
 #include "sharedMemory.h"
 
 typedef struct Part{
+    int type;
     int id;
 } Part;
 
@@ -17,9 +18,7 @@ typedef struct PSM{
 } PSM;
 
 typedef struct TriplePSM{
-    PSM * first;
-    PSM * second;
-    PSM * third;
+    PSM * psm[3];
     int semAllEmpty;
     int semAllFull;
 } TriplePSM;
