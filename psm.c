@@ -51,12 +51,16 @@ void detachTriplePSM(TriplePSM * triplePSM){
     detachPSM(triplePSM->second);
     detachPSM(triplePSM->third);
 
+    semDelete(triplePSM->semAllEmpty);
+    semDelete(triplePSM->semAllFull);
+}
+
+void freeTriplePSM(TriplePSM * triplePSM){
     free(triplePSM->first);
     free(triplePSM->second);
     free(triplePSM->third);
 
-    semDelete(triplePSM->semAllEmpty);
-    semDelete(triplePSM->semAllFull);
+    free(triplePSM);
 }
 
 void detachPSM(PSM * psm){

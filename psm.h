@@ -28,4 +28,5 @@ int randomNumber(int lowerLimit, int upperLimit);
 TriplePSM * getTriplePSM(int size);
 PSM * getPSM(int size);
 void detachPSM(PSM * psm);
+void freeTriplePSM(TriplePSM * triplePSM);
 void detachTriplePSM(TriplePSM * triplePSM);

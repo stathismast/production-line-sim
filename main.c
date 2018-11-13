@@ -4,50 +4,47 @@
 #include <string.h>     // memcpy
 #include "psm.h"
 
-void painter(TriplePSM * tpsm, int numberOfItems){
+void painter(TriplePSM * input, int numOfItems){
     Part part;
 
-    for(int i=0; i<numberOfItems; i++){
+    for(int i=0; i<numOfItems; i++){
 
         // if(i%100 == 0) printf("%d\n", i);
 
-        semDown(tpsm->semAllFull);
+        semDown(input->semAllFull);
 
-            if(semValue(tpsm->first->semFull)){
-                semDown(tpsm->first->semFull);
-                    memcpy(&part, tpsm->first->sharedMemory,sizeof(Part));
-                semUp(tpsm->first->semEmpty);
+            if(semValue(input->first->semFull)){
+                semDown(input->first->semFull);
+                    memcpy(&part, input->first->sharedMemory,sizeof(Part));
+                semUp(input->first->semEmpty);
             }
-            else if(semValue(tpsm->second->semFull)){
-                semDown(tpsm->second->semFull);
-                    memcpy(&part, tpsm->second->sharedMemory,sizeof(Part));
-                semUp(tpsm->second->semEmpty);
+            else if(semValue(input->second->semFull)){
+                semDown(input->second->semFull);
+                    memcpy(&part, input->second->sharedMemory,sizeof(Part));
+                semUp(input->second->semEmpty);
             }
-            else if(semValue(tpsm->third->semFull)){
-                semDown(tpsm->third->semFull);
-                    memcpy(&part, tpsm->third->sharedMemory,sizeof(Part));
-                semUp(tpsm->third->semEmpty);
+            else if(semValue(input->third->semFull)){
+                semDown(input->third->semFull);
+                    memcpy(&part, input->third->sharedMemory,sizeof(Part));
+                semUp(input->third->semEmpty);
             }
             
-        semUp(tpsm->semAllEmpty);
+        semUp(input->semAllEmpty);
 
         printf("\tPainter just received part with ID:\t");
         printf("%d\n\n", part.id);
 
     }
-
-    free(tpsm->first);
-    free(tpsm->second);
-    free(tpsm->third);
-    free(tpsm);
+    
+    freeTriplePSM(input);
     exit(0);
 }
 
-void construction(TriplePSM * tpsm, int rank, int numberOfItems, int startVal){
+void construction(TriplePSM * tpsm, int rank, int numOfItems, int startVal){
     Part part;
     part.id = startVal; 
 
-    for(int i=0; i<numberOfItems; i++){
+    for(int i=0; i<numOfItems; i++){
         semDown(tpsm->semAllEmpty);
             int contructionTime = randomNumber(5000,10000);
             if(rank == 1){
@@ -78,10 +75,7 @@ void construction(TriplePSM * tpsm, int rank, int numberOfItems, int startVal){
         part.id++;
     }
 
-    free(tpsm->first);
-    free(tpsm->second);
-    free(tpsm->third);
-    free(tpsm);
+    freeTriplePSM(tpsm);
     exit(0);
 }
 
@@ -93,22 +87,22 @@ int main(int argc, char * argv[]){
         exit(0);
     }
 
-    int numberOfItems = atoi(argv[1]);
+    int numOfItems = atoi(argv[1]);
 
     // Set up shared memory between the three producers and the painter
-    TriplePSM * toBePainted = getTriplePSM(sizeof(Part));
+    TriplePSM * tpsm1 = getTriplePSM(sizeof(Part));
 
     // Create painter
     if(fork() == 0)
-        painter(toBePainted, 3*numberOfItems);
+        painter(tpsm1, 3*numOfItems);
 
     // Create three part producers
     if(fork() == 0)
-        construction(toBePainted, 1, numberOfItems, 101);
+        construction(tpsm1, 1, numOfItems, 101);
     if(fork() == 0)
-        construction(toBePainted, 2, numberOfItems, 201);
+        construction(tpsm1, 2, numOfItems, 201);
     if(fork() == 0)
-        construction(toBePainted, 3, numberOfItems, 301);
+        construction(tpsm1, 3, numOfItems, 301);
 
     // Wait for every process to finish
     wait(NULL);
@@ -117,6 +111,6 @@ int main(int argc, char * argv[]){
     wait(NULL);
 
     // Detach protected shared memory
-    detachTriplePSM(toBePainted);
-    free(toBePainted);
+    detachTriplePSM(tpsm1);
+    freeTriplePSM(tpsm1);
 }
