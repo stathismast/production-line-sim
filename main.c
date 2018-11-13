@@ -5,32 +5,34 @@
 #include "psm.h"
 
 void painter(TriplePSM * tpsm, int numberOfItems){
+    Part part;
+
     for(int i=0; i<numberOfItems; i++){
 
-        if(i%100 == 0) printf("%d\n", i);
+        // if(i%100 == 0) printf("%d\n", i);
 
         semDown(tpsm->semAllFull);
-        
+
             if(semValue(tpsm->first->semFull)){
                 semDown(tpsm->first->semFull);
-                    printf("\tPainter just received part with ID:\t");
-                    printf("%d\n\n", tpsm->first->sharedMemory->id);
+                    memcpy(&part, tpsm->first->sharedMemory,sizeof(Part));
                 semUp(tpsm->first->semEmpty);
             }
             else if(semValue(tpsm->second->semFull)){
                 semDown(tpsm->second->semFull);
-                    printf("\tPainter just received part with ID:\t");
-                    printf("%d\n\n", tpsm->second->sharedMemory->id);
+                    memcpy(&part, tpsm->second->sharedMemory,sizeof(Part));
                 semUp(tpsm->second->semEmpty);
             }
             else if(semValue(tpsm->third->semFull)){
                 semDown(tpsm->third->semFull);
-                    printf("\tPainter just received part with ID:\t");
-                    printf("%d\n\n", tpsm->third->sharedMemory->id);
+                    memcpy(&part, tpsm->third->sharedMemory,sizeof(Part));
                 semUp(tpsm->third->semEmpty);
             }
             
         semUp(tpsm->semAllEmpty);
+
+        printf("\tPainter just received part with ID:\t");
+        printf("%d\n\n", part.id);
 
     }
 
