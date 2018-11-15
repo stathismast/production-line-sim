@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>       // time
+#include <sys/time.h>       // time
 #include <unistd.h>     // fork
 #include <string.h>     // memcpy
 #include "psm.h"
@@ -8,13 +9,20 @@ int paintTime[3];
 int checkTime[3];
 int assemblyTime;
 
+unsigned long long currentTime() {
+    struct timeval te; 
+    gettimeofday(&te, NULL);
+    return te.tv_sec*1000000 + te.tv_usec;
+}
+
 void construction(TriplePSM * output, int rank, int numOfItems){
     srand(time(NULL)*getpid());
     Part part;
     part.type = rank;
 
     for(int i=0; i<numOfItems; i++){
-        part.id = randomID(); 
+        part.id = randomID();
+        part.creationTime = currentTime();
         semDown(output->psm[rank]->semEmpty);
             // printf("Sending:  %d/%d\n", part.type, part.id);
             usleep(randomNumber(2000,2500)); // Sleep for half a second
@@ -39,6 +47,7 @@ void painter(TriplePSM * input, TriplePSM * output, int numOfItems){
             semUp(input->psm[j]->semEmpty);
 
             // printf("Received: %d/%d\n", part.type, part.id);
+            part.painterTime = currentTime();
             usleep(paintTime[part.type]);
             
             semDown(output->psm[part.type]->semEmpty);
@@ -78,6 +87,9 @@ void assembler(TriplePSM * input, int numOfItems){
     Part part[3];
     int received[3] = {0};
 
+    unsigned long long avgPainterWaitTime = 0;
+    unsigned long long avgTotalTime = 0;    
+
     for(int i=0; i<numOfItems; i++){
 
         // if(i%100 == 0) printf("%d\n", i);
@@ -106,10 +118,22 @@ void assembler(TriplePSM * input, int numOfItems){
             semUp(input->psm[0]->semEmpty);
             semUp(input->psm[1]->semEmpty);
             semUp(input->psm[2]->semEmpty);
+
             usleep(assemblyTime);
-            // semUp(input->semAllEmpty);
+
+            avgTotalTime += (currentTime() - part[0].creationTime);
+            avgTotalTime += (currentTime() - part[1].creationTime);
+            avgTotalTime += (currentTime() - part[2].creationTime);
+
+            avgPainterWaitTime += (part[0].painterTime - part[0].creationTime);
+            avgPainterWaitTime += (part[1].painterTime - part[1].creationTime);
+            avgPainterWaitTime += (part[2].painterTime - part[2].creationTime);
+
         }
     }
+
+    printf("a) %lld\n", avgPainterWaitTime/numOfItems);
+    printf("b) %lld\n", avgTotalTime/numOfItems);
 }
 
 int main(int argc, char * argv[]){
@@ -130,7 +154,7 @@ int main(int argc, char * argv[]){
     checkTime[1] = 732;
     checkTime[2] = 715;
 
-    assemblyTime = 1248;
+    assemblyTime = 1513;
 
     // Set up shared memory between the three producers and the painter
     TriplePSM * tpsm1 = getTriplePSM(sizeof(Part));

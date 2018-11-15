@@ -16,8 +16,8 @@ TriplePSM * getTriplePSM(int size){
     triplePSM->psm[1] = getPSM(size);
     triplePSM->psm[2] = getPSM(size);
 
-    int semEmptyKey = randomNumber(1000,10000);
-    int semFullKey = randomNumber(1000,10000);
+    int semEmptyKey = randomNumber(0,10000000);
+    int semFullKey = randomNumber(0,10000000);
 
     // Set up empty-ness semaphore
     triplePSM->semAllEmpty = semCreate(semEmptyKey,3);
@@ -29,9 +29,9 @@ TriplePSM * getTriplePSM(int size){
 PSM * getPSM(int size){
     PSM * psm = malloc(sizeof(PSM));
 
-    int shmKey = randomNumber(1000,10000);
-    int semEmptyKey = randomNumber(1000,10000);
-    int semFullKey = randomNumber(1000,10000);
+    int shmKey = randomNumber(0,10000000);
+    int semEmptyKey = randomNumber(0,10000000);
+    int semFullKey = randomNumber(0,10000000);
 
     printf("%d\n",shmKey);
     printf("%d\n",semEmptyKey);

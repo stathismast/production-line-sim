@@ -7,6 +7,8 @@
 typedef struct Part{
     int type;
     int id;
+    unsigned long long creationTime;
+    unsigned long long painterTime;
 } Part;
 
 // Stucture that contains sharedMemory that is protected using two semaphores
