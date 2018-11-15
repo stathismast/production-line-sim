@@ -4,16 +4,42 @@
 #include <string.h>     // memcpy
 #include "psm.h"
 
-void painterThatWorks(TriplePSM * input, TriplePSM * output, int numOfItems){
+int paintTime[3];
+int checkTime[3];
+int assemblyTime;
+
+void construction(TriplePSM * output, int rank, int numOfItems){
+    srand(time(NULL)*getpid());
+    Part part;
+    part.type = rank;
+
+    for(int i=0; i<numOfItems; i++){
+        part.id = randomID(); 
+        semDown(output->psm[rank]->semEmpty);
+            // printf("Sending:  %d/%d\n", part.type, part.id);
+            usleep(randomNumber(2000,2500)); // Sleep for half a second
+            memcpy(output->psm[rank]->sharedMemory,&part,sizeof(Part));
+        semUp(output->psm[rank]->semFull);
+    }
+
+    freeTriplePSM(output);
+    exit(0);
+}
+
+void painter(TriplePSM * input, TriplePSM * output, int numOfItems){
     Part part;
 
     for(int i=0; i<numOfItems/3; i++){
+
+        if(i%10 == 0) printf("%d\n", i);
+
         for(int j=0; j<3; j++){
             semDown(input->psm[j]->semFull);
                 memcpy(&part, input->psm[j]->sharedMemory,sizeof(Part));
             semUp(input->psm[j]->semEmpty);
 
-            printf("Received: %d/%d\n", part.type, part.id);
+            // printf("Received: %d/%d\n", part.type, part.id);
+            usleep(paintTime[part.type]);
             
             semDown(output->psm[part.type]->semEmpty);
                 memcpy(output->psm[part.type]->sharedMemory,&part,sizeof(Part));
@@ -26,89 +52,6 @@ void painterThatWorks(TriplePSM * input, TriplePSM * output, int numOfItems){
     exit(0);
 }
 
-void constructionThatWorks(TriplePSM * output, int rank, int numOfItems){
-    srand(time(NULL)*getpid());
-    Part part;
-    part.type = rank;
-
-    for(int i=0; i<numOfItems; i++){
-        part.id = randomNumber(1000,10000); 
-        int contructionTime = randomNumber(5000,10000);
-        semDown(output->psm[rank]->semEmpty);
-            printf("Sending:  %d/%d\n", part.type, part.id);
-            usleep(contructionTime); // Sleep for half a second
-            memcpy(output->psm[rank]->sharedMemory,&part,sizeof(Part));
-        semUp(output->psm[rank]->semFull);
-    }
-
-    freeTriplePSM(output);
-    exit(0);
-}
-
-void painter(TriplePSM * input, TriplePSM * output, int numOfItems){
-    Part part;
-
-    for(int i=0; i<numOfItems; i++){
-
-        // if(i%100 == 0) printf("%d\n", i);
-
-        semDown(input->semAllFull);
-
-            if(semValue(input->psm[0]->semFull)){
-                semDown(input->psm[0]->semFull);
-                    memcpy(&part, input->psm[0]->sharedMemory,sizeof(Part));
-                semUp(input->psm[0]->semEmpty);
-            }
-            else if(semValue(input->psm[1]->semFull)){
-                semDown(input->psm[1]->semFull);
-                    memcpy(&part, input->psm[1]->sharedMemory,sizeof(Part));
-                semUp(input->psm[1]->semEmpty);
-            }
-            else if(semValue(input->psm[2]->semFull)){
-                semDown(input->psm[2]->semFull);
-                    memcpy(&part, input->psm[2]->sharedMemory,sizeof(Part));
-                semUp(input->psm[2]->semEmpty);
-            }
-
-        semUp(input->semAllEmpty);
-
-        // printf("Received: %d/%d\n", part.type, part.id);
-
-        semDown(output->psm[part.type]->semEmpty);
-            memcpy(output->psm[part.type]->sharedMemory,&part,sizeof(Part));
-        semUp(output->psm[part.type]->semFull);
-
-    }
-    
-    freeTriplePSM(input);
-    freeTriplePSM(output);
-    exit(0);
-}
-
-void construction(TriplePSM * output, int rank, int numOfItems){
-    srand(time(NULL)*getpid());
-    Part part;
-    part.type = rank;
-
-    for(int i=0; i<numOfItems; i++){
-        part.id = randomNumber(1000,10000); 
-        int contructionTime = randomNumber(5000,10000);
-
-        semDown(output->semAllEmpty);
-
-            semDown(output->psm[rank]->semEmpty);
-                // printf("Sending:  %d/%d\n", part.type, part.id);
-                usleep(contructionTime); // Sleep for half a second
-                memcpy(output->psm[rank]->sharedMemory,&part,sizeof(Part));
-            semUp(output->psm[rank]->semFull);
-
-        semUp(output->semAllFull);
-    }
-
-    freeTriplePSM(output);
-    exit(0);
-}
-
 void checker(PSM * input, TriplePSM * output, int numOfItems){
     Part part;
 
@@ -117,13 +60,13 @@ void checker(PSM * input, TriplePSM * output, int numOfItems){
             memcpy(&part, input->sharedMemory,sizeof(Part));
         semUp(input->semEmpty);
 
-        printf("Checking: %d/%d\n", part.type, part.id);
+        // printf("Checking: %d/%d\n", part.type, part.id);
 
         // semDown(output->semAllEmpty);
 
             semDown(output->psm[part.type]->semEmpty);
-                printf("CSending: %d/%d\n", part.type, part.id);
-                // usleep(contructionTime); // Sleep for half a second
+                // printf("CSending: %d/%d\n", part.type, part.id);
+                usleep(checkTime[part.type]);
                 memcpy(output->psm[part.type]->sharedMemory,&part,sizeof(Part));
             semUp(output->psm[part.type]->semFull);
 
@@ -158,11 +101,12 @@ void assembler(TriplePSM * input, int numOfItems){
             }
 
         if(received[0] && received[1] && received[2]){
-            printf("Assembler: %d/%d & %d/%d & %d/%d\n", part[0].type, part[0].id, part[1].type, part[1].id, part[2].type, part[2].id);
+            // printf("Assembler: %d/%d & %d/%d & %d/%d\n", part[0].type, part[0].id, part[1].type, part[1].id, part[2].type, part[2].id);
             received[0] = 0; received[1] = 0; received[2] = 0; 
             semUp(input->psm[0]->semEmpty);
             semUp(input->psm[1]->semEmpty);
             semUp(input->psm[2]->semEmpty);
+            usleep(assemblyTime);
             // semUp(input->semAllEmpty);
         }
     }
@@ -177,6 +121,16 @@ int main(int argc, char * argv[]){
     }
 
     int numOfItems = atoi(argv[1]);
+
+    paintTime[0] = 948;
+    paintTime[1] = 831;
+    paintTime[2] = 806;
+
+    checkTime[0] = 746;
+    checkTime[1] = 732;
+    checkTime[2] = 715;
+
+    assemblyTime = 1248;
 
     // Set up shared memory between the three producers and the painter
     TriplePSM * tpsm1 = getTriplePSM(sizeof(Part));

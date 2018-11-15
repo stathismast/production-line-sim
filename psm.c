@@ -5,6 +5,10 @@ int randomNumber(int lowerLimit, int upperLimit){
     return (rand() % (upperLimit-lowerLimit)) + lowerLimit;
 }
 
+int randomID(){
+    return randomNumber(1000,10000);
+}
+
 TriplePSM * getTriplePSM(int size){
     TriplePSM * triplePSM = malloc(sizeof(TriplePSM));
 

@@ -24,6 +24,7 @@ typedef struct TriplePSM{
 } TriplePSM;
 
 int randomNumber(int lowerLimit, int upperLimit);
+int randomID();
 TriplePSM * getTriplePSM(int size);
 PSM * getPSM(int size);
 void detachPSM(PSM * psm);
