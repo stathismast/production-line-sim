@@ -67,43 +67,43 @@ int main(int argc, char * argv[]){
         construction(psm1, 2, numOfItems);
 
     // Set up shared memory between the painter and the three checkers
-    TriplePSM * tpsm2 = getTriplePSM(sizeof(Part));
+    TriplePSM * tpsm = getTriplePSM(sizeof(Part));
 
     // Create painter
     if(fork() == 0)
-        painter(psm1, tpsm2, 3*numOfItems);
+        painter(psm1, tpsm, 3*numOfItems);
 
     // Set up shared memory between the checkers and the assembler
-    PSM * psm3 = getPSM(sizeof(Part));
+    PSM * psm2 = getPSM(sizeof(Part));
 
     // Create three part producers
     if(fork() == 0){
-        checker(tpsm2->psm[0], psm3, numOfItems);
+        checker(tpsm->psm[0], psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm2);
-        free(psm3);
+        freeTriplePSM(tpsm);
+        free(psm2);
         exit(0);
     }
     if(fork() == 0){
-        checker(tpsm2->psm[1], psm3, numOfItems);
+        checker(tpsm->psm[1], psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm2);
-        free(psm3);
+        freeTriplePSM(tpsm);
+        free(psm2);
         exit(0);
     }
     if(fork() == 0){
-        checker(tpsm2->psm[2], psm3, numOfItems);
+        checker(tpsm->psm[2], psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm2);
-        free(psm3);
+        freeTriplePSM(tpsm);
+        free(psm2);
         exit(0);
     }
 
     if(fork() == 0){
-        assembler(psm3, 3*numOfItems);
+        assembler(psm2, 3*numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm2);
-        free(psm3);
+        freeTriplePSM(tpsm);
+        free(psm2);
         exit(0);
     }
 
@@ -121,9 +121,9 @@ int main(int argc, char * argv[]){
     detachPSM(psm1);
     free(psm1);
 
-    detachTriplePSM(tpsm2);
-    freeTriplePSM(tpsm2);
+    detachTriplePSM(tpsm);
+    freeTriplePSM(tpsm);
 
-    detachPSM(psm3);
-    free(psm3);
+    detachPSM(psm2);
+    free(psm2);
 }
