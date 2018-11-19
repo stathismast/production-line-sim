@@ -24,8 +24,6 @@ typedef struct PSM{
 
 typedef struct TriplePSM{
     PSM * psm[3];
-    int semAllEmpty;
-    int semAllFull;
 } TriplePSM;
 
 #endif //PSM_H

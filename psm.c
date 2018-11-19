@@ -15,15 +15,6 @@ TriplePSM * getTriplePSM(int size){
     triplePSM->psm[0] = getPSM(size);
     triplePSM->psm[1] = getPSM(size);
     triplePSM->psm[2] = getPSM(size);
-
-    int semEmptyKey = randomNumber(0,10000000);
-    int semFullKey = randomNumber(0,10000000);
-
-    // Set up empty-ness semaphore
-    triplePSM->semAllEmpty = semCreate(semEmptyKey,3);
-
-    // Set up full-ness semaphore
-    triplePSM->semAllFull = semCreate(semFullKey,0);
 }
 
 PSM * getPSM(int size){
@@ -54,9 +45,6 @@ void detachTriplePSM(TriplePSM * triplePSM){
     detachPSM(triplePSM->psm[0]);
     detachPSM(triplePSM->psm[1]);
     detachPSM(triplePSM->psm[2]);
-
-    semDelete(triplePSM->semAllEmpty);
-    semDelete(triplePSM->semAllFull);
 }
 
 void freeTriplePSM(TriplePSM * triplePSM){
