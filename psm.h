@@ -4,6 +4,9 @@
 #include "semaphores.h"
 #include "sharedMemory.h"
 
+#ifndef PSM_H
+#define PSM_H
+
 typedef struct Part{
     int type;
     int id;
@@ -24,6 +27,8 @@ typedef struct TriplePSM{
     int semAllEmpty;
     int semAllFull;
 } TriplePSM;
+
+#endif //PSM_H
 
 int randomNumber(int lowerLimit, int upperLimit);
 int randomID();

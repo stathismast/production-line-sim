@@ -2,8 +2,8 @@
 #include "psm.h"
 
 unsigned long long currentTime();
-void construction(TriplePSM * output, int rank, int numOfItems);
-void painter(TriplePSM * input, TriplePSM * output, int numOfItems);
-void checker(PSM * input, TriplePSM * output, int numOfItems);
-void assembler(TriplePSM * input, int numOfItems);
+void construction(PSM * output, int rank, int numOfItems);
+void painter(PSM * input, TriplePSM * output, int numOfItems);
+void checker(PSM * input, PSM * output, int numOfItems);
+void assembler(PSM * input, int numOfItems);
 
