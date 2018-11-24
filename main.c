@@ -3,48 +3,26 @@
 #include <unistd.h>     // fork
 #include <string.h>     // memcpy
 #include "processes.h"
-#include "queue.h"
 
 int paintTime[3];
 int checkTime[3];
 int assemblyTime;
 
-int queueTest(){
-    Queue * queue = newQueue();
-
-    Part part;
-
-    for(int i=0; i<10; i++){
-        part.id = i;
-        // printf("%d\n",i);
-        addToQueue(queue, part);
-        // printQueue(queue);
-        // printf("%d\n", queue->value);
-    }
-    printQueue(queue);
-
-    for(int i=0; i<10; i++){
-        popFromQueue(queue);
-    }
-    printQueue(queue);
-
-    free(queue);
-    exit(0);
-}
-
 int main(int argc, char * argv[]){
-
-    // queueTest();
 
     srand(time(NULL));
 
+    // Check for corrent arguments
     if(argc != 2 || atoi(argv[1]) < 1){
         printf("Usage: ./a.out Y\nWhere Y is the number of parts produced.\n");
         exit(0);
     }
 
+    // Store given command line argument
     int numOfItems = atoi(argv[1]);
 
+    // Assign values for total paint and check time for
+    // each part type as well as a total assembly time 
     paintTime[0] = 948;
     paintTime[1] = 831;
     paintTime[2] = 806;
@@ -55,23 +33,37 @@ int main(int argc, char * argv[]){
 
     assemblyTime = 1513;
 
+
     // Set up shared memory between the three producers and the painter
     PSM * psm1 = getPSM(sizeof(Part));
 
     // Create three part producers
-    if(fork() == 0)
+    if(fork() == 0){
         construction(psm1, 0, numOfItems);
-    if(fork() == 0)
+        free(psm1);
+        exit(0);
+    }
+    if(fork() == 0){
         construction(psm1, 1, numOfItems);
-    if(fork() == 0)
+        free(psm1);
+        exit(0);
+    }
+    if(fork() == 0){
         construction(psm1, 2, numOfItems);
+        free(psm1);
+        exit(0);
+    }
 
     // Set up shared memory between the painter and the three checkers
     TriplePSM * tpsm = getTriplePSM(sizeof(Part));
 
     // Create painter
-    if(fork() == 0)
+    if(fork() == 0){
         painter(psm1, tpsm, 3*numOfItems);
+        free(psm1);
+        freeTriplePSM(tpsm);
+        exit(0);
+    }
 
     // Set up shared memory between the checkers and the assembler
     PSM * psm2 = getPSM(sizeof(Part));
@@ -99,6 +91,13 @@ int main(int argc, char * argv[]){
         exit(0);
     }
 
+    // Prints for a progress bar that what percentage
+    // of the total items has been assembled
+    printf("Assembly Progress:\n");
+    printf("0   10   20   30   40   50   60   70   80   90   100\n");
+    printf("["); fflush(0);
+
+    // Create assembler
     if(fork() == 0){
         assembler(psm2, 3*numOfItems);
         free(psm1);
@@ -117,7 +116,7 @@ int main(int argc, char * argv[]){
     wait(NULL);
     wait(NULL);
 
-    // Detach protected shared memory
+    // Detach all shared memory and semaphores
     detachPSM(psm1);
     free(psm1);
 

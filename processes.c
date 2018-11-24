@@ -33,9 +33,6 @@ void construction(PSM * output, int rank, int numOfItems){
             memcpy(output->sharedMemory,&part,sizeof(Part));
         semUp(output->semFull);
     }
-
-    free(output);
-    exit(0);
 }
 
 void painter(PSM * input, TriplePSM * output, int numOfItems){
@@ -43,7 +40,7 @@ void painter(PSM * input, TriplePSM * output, int numOfItems){
 
     for(int i=0; i<numOfItems; i++){
 
-        if(i%30 == 0) printf("%d\n", i/3);
+        // if(i%30 == 0) printf("%d\n", i/3);
 
         // Take part from the contruction
         semDown(input->semFull);
@@ -60,10 +57,6 @@ void painter(PSM * input, TriplePSM * output, int numOfItems){
         semUp(output->psm[part.type]->semFull);
 
     }
-    
-    free(input);
-    freeTriplePSM(output);
-    exit(0);
 }
 
 void checker(PSM * input, PSM * output, int numOfItems){
@@ -83,6 +76,7 @@ void checker(PSM * input, PSM * output, int numOfItems){
 }
 
 void assembler(PSM * input, int numOfItems){
+    int itemsAssembled = 0;
     Part part;
 
     Queue * partQueue[3] = {0};
@@ -101,6 +95,8 @@ void assembler(PSM * input, int numOfItems){
             addToQueue(partQueue[part.type], part);
         semUp(input->semEmpty);
 
+        // printf("Assembler\n");
+
         // If we have atleast one of each part, we can assemble it
         if(notEmpty(partQueue[0]) &&
            notEmpty(partQueue[1]) &&
@@ -113,6 +109,11 @@ void assembler(PSM * input, int numOfItems){
             // printf("Assembler: %d/%d & %d/%d & %d/%d\n", part[0].type, part[0].id, part[1].type, part[1].id, part[2].type, part[2].id);
 
             usleep(assemblyTime);
+            
+            itemsAssembled++;
+            if(itemsAssembled % (numOfItems/(3*50)) == 0){
+                printf("#"); fflush(0);
+            }
 
             for(int j=0; j<3; j++) 
                 avgTotalTime += (currentTime() - part[j].creationTime);
@@ -122,6 +123,7 @@ void assembler(PSM * input, int numOfItems){
         }
     }
 
+    printf("]\n");
     printf("a) %lld\n", avgWaitTime/numOfItems);
     printf("b) %lld\n", avgTotalTime/numOfItems);
 

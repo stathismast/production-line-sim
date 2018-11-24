@@ -24,10 +24,6 @@ PSM * getPSM(int size){
     int semEmptyKey = randomNumber(0,10000000);
     int semFullKey = randomNumber(0,10000000);
 
-    printf("%d\n",shmKey);
-    printf("%d\n",semEmptyKey);
-    printf("%d\n",semFullKey);
-
     // Set up shared memory segment
     psm->shmid = shmCreate(shmKey,size);
     psm->sharedMemory = shmGet(psm->shmid);
