@@ -54,14 +54,14 @@ int main(int argc, char * argv[]){
         exit(0);
     }
 
-    // Set up shared memory between the painter and the three checkers
+    // Set up shared memory for the painter to send a part to the checkers
     TriplePSM * tpsm = getTriplePSM();
 
     // Create painter
     if(fork() == 0){
         painter(psm1, tpsm, 3*numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm);
+        free(tpsm);
         exit(0);
     }
 
@@ -70,24 +70,33 @@ int main(int argc, char * argv[]){
 
     // Create three part producers
     if(fork() == 0){
-        checker(tpsm->psm[0], psm2, numOfItems);
+        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
+                                     tpsm->semEmpty, tpsm->semFull[0]);
+        checker(input, psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm);
+        free(tpsm);
         free(psm2);
+        free(input);
         exit(0);
     }
     if(fork() == 0){
-        checker(tpsm->psm[1], psm2, numOfItems);
+        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
+                                     tpsm->semEmpty, tpsm->semFull[1]);
+        checker(input, psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm);
+        free(tpsm);
         free(psm2);
+        free(input);
         exit(0);
     }
     if(fork() == 0){
-        checker(tpsm->psm[2], psm2, numOfItems);
+        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
+                                     tpsm->semEmpty, tpsm->semFull[2]);
+        checker(input, psm2, numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm);
+        free(tpsm);
         free(psm2);
+        free(input);
         exit(0);
     }
 
@@ -101,7 +110,7 @@ int main(int argc, char * argv[]){
     if(fork() == 0){
         assembler(psm2, 3*numOfItems);
         free(psm1);
-        freeTriplePSM(tpsm);
+        free(tpsm);
         free(psm2);
         exit(0);
     }
@@ -121,7 +130,7 @@ int main(int argc, char * argv[]){
     free(psm1);
 
     detachTriplePSM(tpsm);
-    freeTriplePSM(tpsm);
+    free(tpsm);
 
     detachPSM(psm2);
     free(psm2);

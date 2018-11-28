@@ -23,7 +23,10 @@ typedef struct PSM{
 } PSM;
 
 typedef struct TriplePSM{
-    PSM * psm[3];
+    Part * sharedMemory;
+    int shmid;
+    int semEmpty;
+    int semFull[3];
 } TriplePSM;
 
 #endif //PSM_H
@@ -32,6 +35,6 @@ int randomNumber(int lowerLimit, int upperLimit);
 int randomID();
 TriplePSM * getTriplePSM();
 PSM * getPSM();
+PSM * getSpecificPSM(Part * shm, int shmid, int semEmpty, int semFull);
 void detachPSM(PSM * psm);
-void freeTriplePSM(TriplePSM * triplePSM);
 void detachTriplePSM(TriplePSM * triplePSM);

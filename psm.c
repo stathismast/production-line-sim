@@ -14,9 +14,23 @@ int randomID(){
 TriplePSM * getTriplePSM(){
     TriplePSM * triplePSM = malloc(sizeof(TriplePSM));
 
-    triplePSM->psm[0] = getPSM();
-    triplePSM->psm[1] = getPSM();
-    triplePSM->psm[2] = getPSM();
+    int shmKey = randomNumber(0,10000000);
+    int semEmptyKey = randomNumber(0,10000000);
+    int semFullKey0 = randomNumber(0,10000000);
+    int semFullKey1 = randomNumber(0,10000000);
+    int semFullKey2 = randomNumber(0,10000000);
+
+    // Set up shared memory segment
+    triplePSM->shmid = shmCreate(shmKey,sizeof(Part));
+    triplePSM->sharedMemory = shmGet(triplePSM->shmid);
+
+    // Set up empty-ness semaphore
+    triplePSM->semEmpty = semCreate(semEmptyKey,1);
+
+    // Set up full-ness semaphore
+    triplePSM->semFull[0] = semCreate(semFullKey0,0);
+    triplePSM->semFull[1] = semCreate(semFullKey1,0);
+    triplePSM->semFull[2] = semCreate(semFullKey2,0);
 }
 
 // Create and return a new PSM structure with
@@ -41,18 +55,32 @@ PSM * getPSM(){
     return psm;
 }
 
-void detachTriplePSM(TriplePSM * triplePSM){
-    detachPSM(triplePSM->psm[0]);
-    detachPSM(triplePSM->psm[1]);
-    detachPSM(triplePSM->psm[2]);
+// Create and return a new PSM structure with
+// specific specific values for each member
+PSM * getSpecificPSM(Part * shm, int shmid, int semEmpty, int semFull){
+    PSM * psm = malloc(sizeof(PSM));
+
+    // Set up shared memory segment
+    psm->shmid = shmid;
+    psm->sharedMemory = shm;
+
+    // Set up empty-ness semaphore
+    psm->semEmpty = semEmpty;
+
+    // Set up full-ness semaphore
+    psm->semFull = semFull;
+
+    return psm;
 }
 
-void freeTriplePSM(TriplePSM * triplePSM){
-    free(triplePSM->psm[0]);
-    free(triplePSM->psm[1]);
-    free(triplePSM->psm[2]);
+void detachTriplePSM(TriplePSM * triplePSM){
+    shmDetach(triplePSM->sharedMemory);
+    shmDelete(triplePSM->shmid);
 
-    free(triplePSM);
+    semDelete(triplePSM->semEmpty);
+    semDelete(triplePSM->semFull[0]);
+    semDelete(triplePSM->semFull[1]);
+    semDelete(triplePSM->semFull[2]);
 }
 
 // Detach the shared memory segment and the two semaphores of a PSM structure

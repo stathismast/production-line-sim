@@ -52,9 +52,9 @@ void painter(PSM * input, TriplePSM * output, int numOfItems){
         usleep(paintTime[part.type]);
         
         // Send part to checker
-        semDown(output->psm[part.type]->semEmpty);
-            memcpy(output->psm[part.type]->sharedMemory,&part,sizeof(Part));
-        semUp(output->psm[part.type]->semFull);
+        semDown(output->semEmpty);
+            memcpy(output->sharedMemory,&part,sizeof(Part));
+        semUp(output->semFull[part.type]);
 
     }
 }
