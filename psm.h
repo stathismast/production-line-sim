@@ -30,8 +30,8 @@ typedef struct TriplePSM{
 
 int randomNumber(int lowerLimit, int upperLimit);
 int randomID();
-TriplePSM * getTriplePSM(int size);
-PSM * getPSM(int size);
+TriplePSM * getTriplePSM();
+PSM * getPSM();
 void detachPSM(PSM * psm);
 void freeTriplePSM(TriplePSM * triplePSM);
 void detachTriplePSM(TriplePSM * triplePSM);

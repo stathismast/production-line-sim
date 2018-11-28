@@ -35,7 +35,7 @@ int main(int argc, char * argv[]){
 
 
     // Set up shared memory between the three producers and the painter
-    PSM * psm1 = getPSM(sizeof(Part));
+    PSM * psm1 = getPSM();
 
     // Create three part producers
     if(fork() == 0){
@@ -55,7 +55,7 @@ int main(int argc, char * argv[]){
     }
 
     // Set up shared memory between the painter and the three checkers
-    TriplePSM * tpsm = getTriplePSM(sizeof(Part));
+    TriplePSM * tpsm = getTriplePSM();
 
     // Create painter
     if(fork() == 0){
@@ -66,7 +66,7 @@ int main(int argc, char * argv[]){
     }
 
     // Set up shared memory between the checkers and the assembler
-    PSM * psm2 = getPSM(sizeof(Part));
+    PSM * psm2 = getPSM();
 
     // Create three part producers
     if(fork() == 0){
