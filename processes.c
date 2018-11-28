@@ -111,7 +111,8 @@ void assembler(PSM * input, int numOfItems){
             usleep(assemblyTime);
             
             itemsAssembled++;
-            if(itemsAssembled % (numOfItems/(3*50)) == 0){
+            // printf("%d / %d = %d\n", numOfItems, (3*50), (numOfItems/(3*50)));
+            if(numOfItems >= 150 && itemsAssembled % (numOfItems/(3*50)) == 0){
                 printf("#"); fflush(0);
             }
 

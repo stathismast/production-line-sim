@@ -55,6 +55,10 @@ int main(int argc, char * argv[]){
     }
 
     // Set up shared memory for the painter to send a part to the checkers
+    // This structure will have a single shared memory segment, a single 
+    // semEmpty semaphore, but three different semFull semaphores, one for 
+    // each checker process. That way each checker process will access the
+    // shared memory only if it contains the type of part they can check
     TriplePSM * tpsm = getTriplePSM();
 
     // Create painter
@@ -68,10 +72,12 @@ int main(int argc, char * argv[]){
     // Set up shared memory between the checkers and the assembler
     PSM * psm2 = getPSM();
 
-    // Create three part producers
+    // Create three checker
     if(fork() == 0){
-        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
-                                     tpsm->semEmpty, tpsm->semFull[0]);
+        // Create a PSM for the checker process. It should have the same
+        // shared memory segment as all the other checkers, the same
+        // semEmpty semaphore but a different semFull semaphore
+        PSM * input = getSpecificPSM(tpsm->sharedMemory,tpsm->shmid,tpsm->semEmpty, tpsm->semFull[0]);
         checker(input, psm2, numOfItems);
         free(psm1);
         free(tpsm);
@@ -80,8 +86,10 @@ int main(int argc, char * argv[]){
         exit(0);
     }
     if(fork() == 0){
-        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
-                                     tpsm->semEmpty, tpsm->semFull[1]);
+        // Create a PSM for the checker process. It should have the same
+        // shared memory segment as all the other checkers, the same
+        // semEmpty semaphore but a different semFull semaphore
+        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,tpsm->semEmpty, tpsm->semFull[1]);
         checker(input, psm2, numOfItems);
         free(psm1);
         free(tpsm);
@@ -90,8 +98,10 @@ int main(int argc, char * argv[]){
         exit(0);
     }
     if(fork() == 0){
-        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,
-                                     tpsm->semEmpty, tpsm->semFull[2]);
+        // Create a PSM for the checker process. It should have the same
+        // shared memory segment as all the other checkers, the same
+        // semEmpty semaphore but a different semFull semaphore
+        PSM * input = getSpecificPSM(tpsm->sharedMemory, tpsm->shmid,tpsm->semEmpty, tpsm->semFull[2]);
         checker(input, psm2, numOfItems);
         free(psm1);
         free(tpsm);
@@ -127,11 +137,11 @@ int main(int argc, char * argv[]){
 
     // Detach all shared memory and semaphores
     detachPSM(psm1);
-    free(psm1);
 
     detachTriplePSM(tpsm);
-    free(tpsm);
 
     detachPSM(psm2);
+    free(tpsm);
+    free(psm1);
     free(psm2);
 }
