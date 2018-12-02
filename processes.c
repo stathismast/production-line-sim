@@ -6,6 +6,7 @@
 #include <string.h>     // memcpy
 #include "queue.h"
 
+extern int creationRange[2];
 extern int paintTime[3];
 extern int checkTime[3];
 extern int assemblyTime;
@@ -23,7 +24,7 @@ void construction(PSM * output, int rank, int numOfItems){
 
     for(int i=0; i<numOfItems; i++){
         // Create part at a random time interval
-        usleep(randomNumber(3000,3600));
+        usleep(randomNumber(creationRange[0],creationRange[1]));
         part.id = randomID();
         part.creationTime = currentTime();
 

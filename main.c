@@ -4,6 +4,7 @@
 #include <string.h>     // memcpy
 #include "processes.h"
 
+int creationRange[2];
 int paintTime[3];
 int checkTime[3];
 int assemblyTime;
@@ -20,6 +21,11 @@ int main(int argc, char * argv[]){
 
     // Store given command line argument
     int numOfItems = atoi(argv[1]);
+
+    // Assign lower and upper bound values for the
+    // random time that a new part is created
+    creationRange[0] = 1500;
+    creationRange[1] = 2000;
 
     // Assign values for total paint and check time for
     // each part type as well as a total assembly time 
