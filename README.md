@@ -19,11 +19,11 @@ sudo apt-get install gcc
 ```
 make
 ```
-from the corresponding directories.
+from the main directory.
 
 ## Execute
 
--  To execute, run the executable created from the compilation and include a command line argument that determines the number of parts you want to create
+-  To execute, run the executable created from the compilation and include a command line argument that determines the number of parts you want to create:
 
 ```
 ./a.out 1000
